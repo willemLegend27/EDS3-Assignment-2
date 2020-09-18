@@ -9,7 +9,6 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -33,6 +32,7 @@ private:
     int opt = true;
     int maxSd;
     struct sockaddr_in address;
+    char messageBuffer[1500];
 
 public:
     Server();
