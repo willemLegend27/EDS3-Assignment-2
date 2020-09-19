@@ -1,7 +1,3 @@
-#include <stdexcept>
-#include <string>
-#include <stdint.h>
-#include <iostream>
 #include "Server.h"
 
 using namespace std;
@@ -50,10 +46,10 @@ void Server::CreateServer()
     }
     FD_ZERO(&activeFDSet);
     FD_SET(serverSocket, &activeFDSet);
-
-    while (1)
+    cout << "Awaiting client(s) to connect\n";
+    while (true)
     {
-        /* Block until input arrives on one or more active sockets. */
+
         readFDSet = activeFDSet;
         if (select(FD_SETSIZE, &readFDSet, NULL, NULL, NULL) < 0)
         {
@@ -61,66 +57,65 @@ void Server::CreateServer()
             exit(EXIT_FAILURE);
         }
 
-        /* Service all the sockets with input pending. */
         for (int i = 0; i < FD_SETSIZE; ++i)
+        {
             if (FD_ISSET(i, &readFDSet))
             {
                 if (i == serverSocket)
                 {
-                    /* Connection request on original socket. */
-                    int newClient;
-                    clientSize = sizeof(clientSocketAddrIn);
-                    newClient = accept(serverSocket, (struct sockaddr *)&clientSocketAddrIn, &clientSize);
-                    if (newClient < 0)
-                    {
-                        perror("accept");
-                        exit(EXIT_FAILURE);
-                    }
-                    //fprintf(stderr,
-                    //       "Server: connect from host %s, port %hd.\n",
-                    //       inet_ntoa(clientSocketAddrIn.sin_addr),
-                    //       ntohs(clientSocketAddrIn.sin_port));
-
-                    FD_SET(newClient, &activeFDSet);
+                    HostClient();
                 }
                 else
                 {
-                    /* Data arriving on an already-connected socket. */
-                    if (ReadMessage(i) < 0)
-                    {
-                        close(i);
-                        FD_CLR(i, &activeFDSet);
-                    }
+                    ListenForMessages(i);
                 }
             }
+        }
     }
 }
 
 void Server::HostClient()
 {
+    clientSize = sizeof(clientSocketAddrIn);
+    int newClient = accept(serverSocket, (struct sockaddr *)&clientSocketAddrIn, &clientSize);
+    if (newClient < 0)
+    {
+        perror("accept");
+        exit(EXIT_FAILURE);
+    }
+    cout << "Client with address:" << inet_ntoa(clientSocketAddrIn.sin_addr) << " connect to server from port: " << ntohs(clientSocketAddrIn.sin_port) << "\n";
+    FD_SET(newClient, &activeFDSet);
 }
-void Server::ListenForMessages()
+void Server::ListenForMessages(int descriptor)
 {
+    if (ReadMessage(descriptor) < 0)
+    {
+        close(descriptor);
+        FD_CLR(descriptor, &activeFDSet);
+    }
 }
 int Server::ReadMessage(int descriptor)
 {
-    char *buffer = new char[maxMessageSize];
-    int nbytes;
-
-    nbytes = read(descriptor, buffer, maxMessageSize);
-    if (nbytes < 0)
+    char *messageBuffer = new char[maxMessageSize];
+    int nrOfBytes = read(descriptor, messageBuffer, maxMessageSize);
+    if (nrOfBytes < 0)
     {
-        /* Read error. */
         perror("read");
         exit(EXIT_FAILURE);
     }
-    else if (nbytes == 0)
-        /* End-of-file. */
+    else if (nrOfBytes == 0)
         return -1;
     else
     {
-        /* Data read. */
-        fprintf(stderr, "Server: got message: `%s'\n", buffer);
+        cout << "Server received message: " << messageBuffer << "\n";
+        cout << "Sending acknowlegdement back to client\n";
+        char const *answer = "ACK";
+        SendMessage(descriptor, answer);
         return 0;
     }
+}
+
+void Server::SendMessage(int desciptor, const char *message)
+{
+    send(desciptor, message, strlen(message), 0);
 }

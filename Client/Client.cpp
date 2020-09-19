@@ -44,9 +44,13 @@ int Client::ConnectToServer()
     return 0;
 }
 
-void Client::Messaging()
+void Client::SendMessage()
 {
     send(clientSocket, messageToSend, strlen(messageToSend), 0);
+}
 
+void Client::ReceiveMessage()
+{
     valRead = read(clientSocket, messageBuffer, 1024);
+    cout << "Received message: " << messageBuffer << "\n";
 }

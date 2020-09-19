@@ -33,7 +33,9 @@ public:
     Client(uint16_t serverPort);
     int CreateClientSocket();
     int ConnectToServer();
-    void Messaging();
+    void SendMessage();
+    void ReceiveMessage();
+
 
 private:
 };

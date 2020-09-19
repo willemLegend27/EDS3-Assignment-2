@@ -10,6 +10,7 @@
 static void connectToServer(Client *client)
 {
     client->CreateClientSocket();
+    cout << "Connecting to server...\n";
     if (client->ConnectToServer() == -1)
     {
         cout << "Couldn't connect to server\n";
@@ -23,7 +24,13 @@ static void connectToServer(Client *client)
 static void sendMessage(Client *client, string message)
 {
     cout << "Sending message: " << message << " to server\n";
-    client->Messaging();
+    client->SendMessage();
+}
+
+static void awaitMessage(Client *client)
+{
+    cout << "Awaiting message from server\n";
+    client->ReceiveMessage();
 }
 
 static void showMenu(void)
@@ -51,12 +58,11 @@ int main(void)
         switch (userInput)
         {
         case '1':
-            cout << "Connecting to server...\n";
             connectToServer(client);
             break;
         case '3':
-            cout << "CSending message to server...\n";
             sendMessage(client, "22");
+            awaitMessage(client);
             break;
         case '4':
             quit = true;

@@ -10,6 +10,6 @@
 int main(void)
 {
     Server *server = new Server(8888);
-    cout << "PortNumber : " << server->GetPortNumber() << "\n";
+    cout << "Created server on port: " << server->GetPortNumber() << "\n";
     server->CreateServer();
 }
