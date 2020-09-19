@@ -11,5 +11,5 @@ int main(void)
 {
     Server *server = new Server(8888);
     cout << "PortNumber : " << server->GetPortNumber() << "\n";
-    server->SetupServer();
+    server->CreateServer();
 }

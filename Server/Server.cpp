@@ -2,162 +2,125 @@
 #include <string>
 #include <stdint.h>
 #include <iostream>
-
 #include "Server.h"
 
 using namespace std;
+
 Server::Server()
 {
 }
-
 Server::Server(uint16_t portNumber)
 {
     this->portNumber = portNumber;
 }
 
-uint16_t Server::GetPortNumber() const
+int Server::GetPortNumber()
 {
     return portNumber;
 }
 
-void Server::ResetClientSockets()
+int Server::CreateSocket()
 {
-    for (int i = 0; i < MaxClients; i++)
+    serverSocket = socket(PF_INET, SOCK_STREAM, 0);
+    if (serverSocket < 0)
     {
-        clientSockets[i] = 0;
-    }
-}
-
-void Server::SetupServer()
-{
-    CreateMasterSocket();
-    cout << "Created a server on port: " << portNumber << "\n";
-    ListenForClients();
-    cout << "Listening for client on port: " << portNumber << "\n";
-}
-
-void Server::CreateMasterSocket()
-{
-    if ((masterSocket = socket(AF_INET, SOCK_STREAM, 0)) == 0)
-    {
-        perror("socket failed");
+        perror("socket");
         exit(EXIT_FAILURE);
     }
 
-    if (setsockopt(masterSocket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,
-                   sizeof(opt)) < 0)
+    socketAddrIn.sin_family = AF_INET;
+    socketAddrIn.sin_port = htons(portNumber);
+    socketAddrIn.sin_addr.s_addr = htonl(INADDR_ANY);
+    if (bind(serverSocket, (struct sockaddr *)&socketAddrIn, sizeof(socketAddrIn)) < 0)
     {
-        perror("setsockopt");
+        perror("bind");
         exit(EXIT_FAILURE);
     }
 
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(portNumber);
+    return serverSocket;
 }
 
-void Server::ListenForClients()
+void Server::CreateServer()
 {
-    if (bind(masterSocket, (struct sockaddr *)&address, sizeof(address)) < 0)
-    {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
-    }
-    if (listen(masterSocket, 3) < 0)
+    serverSocket = CreateSocket();
+    if (listen(serverSocket, 1) < 0)
     {
         perror("listen");
         exit(EXIT_FAILURE);
     }
+    FD_ZERO(&activeFDSet);
+    FD_SET(serverSocket, &activeFDSet);
 
-    //accept the incoming connection
-    addrLen = sizeof(address);
-    puts("Waiting for connections ...");
-
-    while (true)
+    while (1)
     {
-        //clear the socket set
-        FD_ZERO(&readfds);
-
-        //add master socket to set
-        FD_SET(masterSocket, &readfds);
-        maxSd = masterSocket;
-
-        //add child sockets to set
-        for (int i = 0; i < MaxClients; i++)
+        /* Block until input arrives on one or more active sockets. */
+        readFDSet = activeFDSet;
+        if (select(FD_SETSIZE, &readFDSet, NULL, NULL, NULL) < 0)
         {
-            //socket descriptor
-            sd = clientSockets[i];
-
-            //if valid socket descriptor then add to read list
-            if (sd > 0)
-                FD_SET(sd, &readfds);
-
-            //highest file descriptor number, need it for the select function
-            if (sd > maxSd)
-                maxSd = sd;
+            perror("select");
+            exit(EXIT_FAILURE);
         }
 
-        //wait for an activity on one of the sockets , timeout is NULL ,
-        //so wait indefinitely
-        activity = select(maxSd + 1, &readfds, NULL, NULL, NULL);
-
-        if ((activity < 0) && (errno != EINTR))
-        {
-            printf("select error");
-        }
-
-        //If something happened on the master socket ,
-        //then its an incoming connection
-        if (FD_ISSET(masterSocket, &readfds))
-        {
-            if ((newSocket = accept(masterSocket,
-                                    (struct sockaddr *)&address, (socklen_t *)&addrLen)) < 0)
+        /* Service all the sockets with input pending. */
+        for (int i = 0; i < FD_SETSIZE; ++i)
+            if (FD_ISSET(i, &readFDSet))
             {
-                perror("accept");
-                exit(EXIT_FAILURE);
-            }
-
-            //add new socket to array of sockets
-            for (int i = 0; i < MaxClients; i++)
-            {
-                //if position is empty
-                if (clientSockets[i] == 0)
+                if (i == serverSocket)
                 {
-                    clientSockets[i] = newSocket;
-                    printf("Adding to list of sockets as %d\n", i);
+                    /* Connection request on original socket. */
+                    int newClient;
+                    clientSize = sizeof(clientSocketAddrIn);
+                    newClient = accept(serverSocket, (struct sockaddr *)&clientSocketAddrIn, &clientSize);
+                    if (newClient < 0)
+                    {
+                        perror("accept");
+                        exit(EXIT_FAILURE);
+                    }
+                    //fprintf(stderr,
+                    //       "Server: connect from host %s, port %hd.\n",
+                    //       inet_ntoa(clientSocketAddrIn.sin_addr),
+                    //       ntohs(clientSocketAddrIn.sin_port));
 
-                    break;
-                }
-            }
-        }
-
-        //else its some IO operation on some other socket
-        for (int i = 0; i < MaxClients; i++)
-        {
-            sd = clientSockets[i];
-
-            if (FD_ISSET(sd, &readfds))
-            {
-                if ((valRead = read(sd, messageBuffer, 1024)) == 0)
-                {
-                    getpeername(sd, (struct sockaddr *)&address, (socklen_t *)&addrLen);
-                    cout << "Incomming message from client with IP: " << inet_ntoa(address.sin_addr) << " on port: " << ntohs(address.sin_port) << "\n";
-                    cout << "Received message : " << messageBuffer << "\n\n";
-                    messageBuffer[valRead] = '\0';
-                    cout << "Sending acknowledgement to client"
-                         << "\n";
-
-                    cout << "Closing socket....\n";
-                    close(sd);
-                    clientSockets[i] = 0;
-                    cout << "Disconnected\n";
+                    FD_SET(newClient, &activeFDSet);
                 }
                 else
                 {
-                    messageBuffer[valRead] = '\0';
-                    send(sd, "ACK", 3, 0);
+                    /* Data arriving on an already-connected socket. */
+                    if (ReadMessage(i) < 0)
+                    {
+                        close(i);
+                        FD_CLR(i, &activeFDSet);
+                    }
                 }
             }
-        }
+    }
+}
+
+void Server::HostClient()
+{
+}
+void Server::ListenForMessages()
+{
+}
+int Server::ReadMessage(int descriptor)
+{
+    char *buffer = new char[maxMessageSize];
+    int nbytes;
+
+    nbytes = read(descriptor, buffer, maxMessageSize);
+    if (nbytes < 0)
+    {
+        /* Read error. */
+        perror("read");
+        exit(EXIT_FAILURE);
+    }
+    else if (nbytes == 0)
+        /* End-of-file. */
+        return -1;
+    else
+    {
+        /* Data read. */
+        fprintf(stderr, "Server: got message: `%s'\n", buffer);
+        return 0;
     }
 }
