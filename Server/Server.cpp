@@ -39,6 +39,7 @@ int Server::CreateSocket()
 void Server::CreateServer()
 {
     serverSocket = CreateSocket();
+    cout << "Server has IP: " << GetServerAddress() << "\n";
     if (listen(serverSocket, 1) < 0)
     {
         perror("listen");
@@ -83,7 +84,7 @@ void Server::HostClient()
         perror("accept");
         exit(EXIT_FAILURE);
     }
-    cout << "Client with address:" << inet_ntoa(clientSocketAddrIn.sin_addr) << " connect to server from port: " << ntohs(clientSocketAddrIn.sin_port) << "\n";
+    cout << "Client with address:" << inet_ntoa(clientSocketAddrIn.sin_addr) << " connected to server from port: " << ntohs(clientSocketAddrIn.sin_port) << "\n";
     FD_SET(newClient, &activeFDSet);
 }
 void Server::ListenForMessages(int descriptor)
@@ -111,6 +112,10 @@ int Server::ReadMessage(int descriptor)
         cout << "Sending acknowlegdement back to client\n";
         char const *answer = "ACK";
         SendMessage(descriptor, answer);
+        if (strcmp(messageBuffer, "Disconnect") == 0)
+        {
+            CloseClientSocket(descriptor);
+        }
         return 0;
     }
 }
@@ -118,4 +123,16 @@ int Server::ReadMessage(int descriptor)
 void Server::SendMessage(int desciptor, const char *message)
 {
     send(desciptor, message, strlen(message), 0);
+}
+
+char *Server::GetServerAddress()
+{
+    return inet_ntoa(socketAddrIn.sin_addr);
+}
+
+void Server::CloseClientSocket(int descriptor)
+{
+    cout << "Closing connection to client " << descriptor << " .....\n";
+    close(descriptor);
+    cout << "Closed connection to client " << descriptor << " .....\n";
 }

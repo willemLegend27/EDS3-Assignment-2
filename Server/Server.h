@@ -32,6 +32,7 @@ public:
     Server(uint16_t portNumber);
     virtual ~Server(){};
     int GetPortNumber();
+    char *GetServerAddress();
     void CreateServer();
 
 private:
@@ -40,6 +41,7 @@ private:
     void ListenForMessages(int descriptor);
     int ReadMessage(int descriptor);
     void SendMessage(int descriptor, const char *message);
+    void CloseClientSocket(int descriptor);
 };
 
 #endif

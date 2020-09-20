@@ -14,6 +14,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <iostream>
+#include <stdexcept>
+#include <stdint.h>
 
 using namespace std;
 class Client
@@ -25,7 +27,7 @@ private:
     uint16_t serverPort;
     struct sockaddr_in serverAddress;
     char messageBuffer[1050] = {0};
-    const char *messageToSend = "Random Message";
+    const char *clientAddress = "127.0.0.1";
 
 public:
     Client();
@@ -33,9 +35,10 @@ public:
     Client(uint16_t serverPort);
     int CreateClientSocket();
     int ConnectToServer();
-    void SendMessage();
-    void ReceiveMessage();
-
+    void SendMessage(string message);
+    void ReceiveMessage(string messageBackUp);
+    char *GetClientAddress();
+    void Disconnect();
 
 private:
 };

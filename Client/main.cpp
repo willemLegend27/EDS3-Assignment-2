@@ -23,14 +23,23 @@ static void connectToServer(Client *client)
 
 static void sendMessage(Client *client, string message)
 {
-    cout << "Sending message: " << message << " to server\n";
-    client->SendMessage();
+
+    client->SendMessage(message);
 }
 
-static void awaitMessage(Client *client)
+static void awaitMessage(Client *client, string sendMessage)
 {
     cout << "Awaiting message from server\n";
-    client->ReceiveMessage();
+    client->ReceiveMessage(sendMessage);
+}
+
+static void disconnect(Client *client)
+{
+    cout << "Disconnecting client from server...\n";
+    string message = "Disconnect";
+    sendMessage(client, message);
+    awaitMessage(client, message);
+    client->Disconnect();
 }
 
 static void showMenu(void)
@@ -47,7 +56,7 @@ int main(void)
     Client *client = new Client(8888);
     cout << "Client is ready for use\n";
     bool quit = false;
-
+    string messageToServer = "Test";
     while (quit == false)
     {
         char userInput = '\0';
@@ -60,9 +69,12 @@ int main(void)
         case '1':
             connectToServer(client);
             break;
+        case '2':
+            disconnect(client);
+            break;
         case '3':
-            sendMessage(client, "22");
-            awaitMessage(client);
+            sendMessage(client, messageToServer);
+            awaitMessage(client, messageToServer);
             break;
         case '4':
             quit = true;
