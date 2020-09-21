@@ -1,12 +1,5 @@
-
-
 #include "Client.h"
 
-using namespace std;
-
-Client::Client()
-{
-}
 Client::Client(uint16_t serverPort)
 {
     this->serverPort = serverPort;
@@ -16,16 +9,16 @@ int Client::CreateClientSocket()
 {
     if ((clientSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
-        cout << "Error creating socket\n";
+        std::cout << "Error creating socket\n";
         return -1;
     }
 
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(serverPort);
+    ServerAddress.sin_family = AF_INET;
+    ServerAddress.sin_port = htons(serverPort);
 
-    if (inet_pton(AF_INET, clientAddress, &serverAddress.sin_addr) <= 0)
+    if (inet_pton(AF_INET, ClientAddress, &ServerAddress.sin_addr) <= 0)
     {
-        cout << "Invalid address\n";
+        std::cout << "Invalid address\n";
         return -1;
     }
     return 0;
@@ -33,45 +26,45 @@ int Client::CreateClientSocket()
 
 int Client::ConnectToServer()
 {
-    if (connect(clientSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)
+    if (connect(clientSocket, (struct sockaddr *)&ServerAddress, sizeof(ServerAddress)) < 0)
     {
-        cout << "Connection Failed\n";
+        std::cout << "Connection Failed\n";
         return -1;
     }
     return 0;
 }
 
-void Client::SendMessage(string message)
+void Client::SendMessage(std::string message)
 {
     char messageToSend[1000];
     strcpy(messageToSend, message.c_str());
-    cout << "Sending message: " << message << " to server\n";
+    std::cout << "Sending message: " << message << " to server\n";
     send(clientSocket, messageToSend, strlen(messageToSend), 0);
-    cout << "Message send\n";
+    std::cout << "Message send\n";
 }
 
-void Client::ReceiveMessage(string messageBackUp)
+void Client::ReceiveMessage(std::string messageBackUp)
 {
     valRead = read(clientSocket, messageBuffer, 1024);
-    cout << "Received message: " << messageBuffer << "\n";
+    std::cout << "Received message: " << messageBuffer << "\n";
     if (strcmp(messageBuffer, "ACK") == 0)
     {
-        cout << "Received acknowledgement, resuming program...\n";
+        std::cout << "Received acknowledgement, resuming program...\n";
     }
     else
     {
-        cout << "No acknowledgement received, trying to resend te message...\n";
+        std::cout << "No acknowledgement received, trying to resend te message...\n";
         SendMessage(messageBackUp);
     }
 }
 
 char *Client::GetClientAddress()
 {
-    return inet_ntoa(serverAddress.sin_addr);
+    return inet_ntoa(ServerAddress.sin_addr);
 }
 
 void Client::Disconnect()
 {
     close(clientSocket);
-    cout << "Disconnected\n";
+    std::cout << "Disconnected\n";
 }

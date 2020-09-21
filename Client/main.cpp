@@ -10,33 +10,33 @@
 static void connectToServer(Client *client)
 {
     client->CreateClientSocket();
-    cout << "Connecting to server...\n";
+    std::cout << "Connecting to server...\n";
     if (client->ConnectToServer() == -1)
     {
-        cout << "Couldn't connect to server\n";
+        std::cout << "Couldn't connect to server\n";
     }
     else
     {
-        cout << "Succesfully connected to server\n";
+        std::cout << "Succesfully connected to server\n";
     }
 }
 
-static void sendMessage(Client *client, string message)
+static void sendMessage(Client *client, std::string message)
 {
 
     client->SendMessage(message);
 }
 
-static void awaitMessage(Client *client, string sendMessage)
+static void awaitMessage(Client *client, std::string sendMessage)
 {
-    cout << "Awaiting message from server\n";
+    std::cout << "Awaiting message from server\n";
     client->ReceiveMessage(sendMessage);
 }
 
 static void disconnect(Client *client)
 {
-    cout << "Disconnecting client from server...\n";
-    string message = "Disconnect";
+    std::cout << "Disconnecting client from server...\n";
+    std::string message = "Disconnect";
     sendMessage(client, message);
     awaitMessage(client, message);
     client->Disconnect();
@@ -44,26 +44,26 @@ static void disconnect(Client *client)
 
 static void showMenu(void)
 {
-    cout << "Select a task from the options below by typing out the corresponding number\n\n";
-    cout << "1: Connect to server\n";
-    cout << "2: Disconnect from server\n";
-    cout << "3: Send message\n";
-    cout << "4: Exit application\n";
+    std::cout << "Select a task from the options below by typing out the corresponding number\n\n";
+    std::cout << "1: Connect to server\n";
+    std::cout << "2: Disconnect from server\n";
+    std::cout << "3: Send message\n";
+    std::cout << "4: Exit application\n";
 }
 
 int main(void)
 {
     Client *client = new Client(8888);
-    cout << "Client is ready for use\n";
+    std::cout << "Client is ready for use\n";
     bool quit = false;
-    string messageToServer = "Test";
+    std::string messageToServer = "Test";
     while (quit == false)
     {
         char userInput = '\0';
         showMenu();
-        cin >> userInput;
-        cout << "Your choice: " << userInput << "\n";
-        cin.ignore();
+        std::cin >> userInput;
+        std::cout << "Your choice: " << userInput << "\n";
+        std::cin.ignore();
         switch (userInput)
         {
         case '1':
@@ -80,7 +80,7 @@ int main(void)
             quit = true;
             break;
         default:
-            cout << "Invalid input\n\n";
+            std::cout << "Invalid input\n\n";
             break;
         }
     }

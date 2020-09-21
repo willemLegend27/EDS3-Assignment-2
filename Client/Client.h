@@ -17,7 +17,6 @@
 #include <stdexcept>
 #include <stdint.h>
 
-using namespace std;
 class Client
 {
 
@@ -25,18 +24,17 @@ private:
     int clientSocket = 0;
     int valRead;
     uint16_t serverPort;
-    struct sockaddr_in serverAddress;
+    struct sockaddr_in ServerAddress;
     char messageBuffer[1050] = {0};
-    const char *clientAddress = "127.0.0.1";
+    const char *ClientAddress = "127.0.0.1";
 
 public:
-    Client();
     ~Client();
     Client(uint16_t serverPort);
     int CreateClientSocket();
     int ConnectToServer();
-    void SendMessage(string message);
-    void ReceiveMessage(string messageBackUp);
+    void SendMessage(std::string message);
+    void ReceiveMessage(std::string messageBackUp);
     char *GetClientAddress();
     void Disconnect();
 
