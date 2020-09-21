@@ -105,8 +105,8 @@ int Server::ReadMessage(int descriptor)
     {
         std::cout << "Server received message: " << messageBuffer << "\n";
         std::cout << "Sending acknowlegdement back to client\n";
-        char const *answer = "ACK";
-        SendMessage(descriptor, answer);
+        char const *Answer = "ACK";
+        SendMessage(descriptor, Answer);
         if (strcmp(messageBuffer, "Disconnect") == 0)
         {
             CloseClientSocket(descriptor);
