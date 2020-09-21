@@ -1,10 +1,5 @@
 #include "Server.h"
 
-using namespace std;
-
-Server::Server()
-{
-}
 Server::Server(uint16_t portNumber)
 {
     this->portNumber = portNumber;
@@ -24,10 +19,10 @@ int Server::CreateSocket()
         exit(EXIT_FAILURE);
     }
 
-    socketAddrIn.sin_family = AF_INET;
-    socketAddrIn.sin_port = htons(portNumber);
-    socketAddrIn.sin_addr.s_addr = htonl(INADDR_ANY);
-    if (bind(serverSocket, (struct sockaddr *)&socketAddrIn, sizeof(socketAddrIn)) < 0)
+    SocketAddrIn.sin_family = AF_INET;
+    SocketAddrIn.sin_port = htons(portNumber);
+    SocketAddrIn.sin_addr.s_addr = htonl(INADDR_ANY);
+    if (bind(serverSocket, (struct sockaddr *)&SocketAddrIn, sizeof(SocketAddrIn)) < 0)
     {
         perror("bind");
         exit(EXIT_FAILURE);
@@ -39,7 +34,7 @@ int Server::CreateSocket()
 void Server::CreateServer()
 {
     serverSocket = CreateSocket();
-    cout << "Server has IP: " << GetServerAddress() << "\n";
+    std::cout << "Server has IP: " << GetServerAddress() << "\n";
     if (listen(serverSocket, 1) < 0)
     {
         perror("listen");
@@ -47,7 +42,7 @@ void Server::CreateServer()
     }
     FD_ZERO(&activeFDSet);
     FD_SET(serverSocket, &activeFDSet);
-    cout << "Awaiting client(s) to connect\n";
+    std::cout << "Awaiting client(s) to connect\n";
     while (true)
     {
 
@@ -77,14 +72,14 @@ void Server::CreateServer()
 
 void Server::HostClient()
 {
-    clientSize = sizeof(clientSocketAddrIn);
-    int newClient = accept(serverSocket, (struct sockaddr *)&clientSocketAddrIn, &clientSize);
+    clientSize = sizeof(ClientSocketAddrIn);
+    int newClient = accept(serverSocket, (struct sockaddr *)&ClientSocketAddrIn, &clientSize);
     if (newClient < 0)
     {
         perror("accept");
         exit(EXIT_FAILURE);
     }
-    cout << "Client with address:" << inet_ntoa(clientSocketAddrIn.sin_addr) << " connected to server from port: " << ntohs(clientSocketAddrIn.sin_port) << "\n";
+    std::cout << "Client with address:" << inet_ntoa(ClientSocketAddrIn.sin_addr) << " connected to server from port: " << ntohs(ClientSocketAddrIn.sin_port) << "\n";
     FD_SET(newClient, &activeFDSet);
 }
 void Server::ListenForMessages(int descriptor)
@@ -108,8 +103,8 @@ int Server::ReadMessage(int descriptor)
         return -1;
     else
     {
-        cout << "Server received message: " << messageBuffer << "\n";
-        cout << "Sending acknowlegdement back to client\n";
+        std::cout << "Server received message: " << messageBuffer << "\n";
+        std::cout << "Sending acknowlegdement back to client\n";
         char const *answer = "ACK";
         SendMessage(descriptor, answer);
         if (strcmp(messageBuffer, "Disconnect") == 0)
@@ -127,12 +122,12 @@ void Server::SendMessage(int desciptor, const char *message)
 
 char *Server::GetServerAddress()
 {
-    return inet_ntoa(socketAddrIn.sin_addr);
+    return inet_ntoa(SocketAddrIn.sin_addr);
 }
 
 void Server::CloseClientSocket(int descriptor)
 {
-    cout << "Closing connection to client " << descriptor << " .....\n";
+    std::cout << "Closing connection to client " << descriptor << " .....\n";
     close(descriptor);
-    cout << "Closed connection to client " << descriptor << " .....\n";
+    std::cout << "Closed connection to client " << descriptor << " .....\n";
 }

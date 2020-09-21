@@ -1,34 +1,32 @@
-#ifndef Server_h
-#define Server_h
+#ifndef SERVER_H
+#define SERVER_H
 
-#include <stdio.h>
-#include <stdexcept>
-#include <string.h>
-#include <stdint.h>
-#include <iostream>
-#include <unistd.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
 #include <arpa/inet.h>
+#include <errno.h>
+#include <iostream>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <stdexcept>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-using namespace std;
 class Server
 {
 
 private:
     uint16_t portNumber;
     int serverSocket;
-    struct sockaddr_in socketAddrIn;
-    struct sockaddr_in clientSocketAddrIn;
+    struct sockaddr_in SocketAddrIn;
+    struct sockaddr_in ClientSocketAddrIn;
     fd_set activeFDSet, readFDSet;
     socklen_t clientSize;
     int maxMessageSize = 1000;
 
 public:
-    Server();
     Server(uint16_t portNumber);
     virtual ~Server(){};
     int GetPortNumber();
