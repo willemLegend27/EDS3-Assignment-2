@@ -1,21 +1,21 @@
-#ifndef Client_h
-#define Client_h
+#ifndef CLIENT_H
+#define CLIENT_H
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <unistd.h>
 #include <arpa/inet.h>
-#include <sys/types.h>
+#include <errno.h>
+#include <iostream>
+#include <netinet/in.h>
+#include <stdexcept>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <iostream>
-#include <stdexcept>
-#include <stdint.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 class Client
 {
