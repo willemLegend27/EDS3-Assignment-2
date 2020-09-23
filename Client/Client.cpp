@@ -109,7 +109,7 @@ int Client::SearchingForFile(std::string name)
         files.push_back(std::string(dirp->d_name));
     }
     closedir(dp);
-    for (unsigned int i = 0; i < files.size(); i++)
+    for (int i = 0; i < files.size(); i++)
     {
 
         std::cout << files[i] << "\n";
