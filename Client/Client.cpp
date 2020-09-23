@@ -43,6 +43,14 @@ void Client::SendMessage(std::string message)
     std::cout << "Message send\n";
 }
 
+void Client::Messaging(std::string message)
+{
+    std::cout << "Sending a message to the server\n";
+    SendMessage(message);
+    std::cout << "Waiting for response from server\n";
+    ReceiveMessage(message);
+}
+
 void Client::ReceiveMessage(std::string messageBackUp)
 {
     valRead = read(clientSocket, messageBuffer, 1024);
@@ -54,8 +62,26 @@ void Client::ReceiveMessage(std::string messageBackUp)
     else
     {
         std::cout << "No acknowledgement received, trying to resend te message...\n";
-        SendMessage(messageBackUp);
+        Messaging(messageBackUp);
     }
+}
+
+void Client::SendFile()
+{
+    std::cout << "Sending file to server\n";
+    FILE *descriptor = fopen(PathToSendFile, "rw");
+    int readBytes;
+    while (!feof(descriptor))
+    {
+        if ((readBytes = fread(&messageBuffer, 1, sizeof(messageBuffer), descriptor)) > 0)
+            send(clientSocket, messageBuffer, readBytes, 0);
+        else
+        {
+            break;
+        }
+    }
+    std::cout << "File has been sended to server\n";
+    fclose(descriptor);
 }
 
 char *Client::GetClientAddress()

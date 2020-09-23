@@ -1,11 +1,11 @@
-#include "Client.h"
-
 #include <arpa/inet.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <unistd.h>
+
+#include "Client.h"
 
 static void connectToServer(Client *client)
 {
@@ -23,14 +23,14 @@ static void connectToServer(Client *client)
 
 static void sendMessage(Client *client, std::string message)
 {
-
-    client->SendMessage(message);
+    client->Messaging(message);
 }
 
-static void awaitMessage(Client *client, std::string sendMessage)
+static void sendFile(Client *client)
 {
-    std::cout << "Awaiting message from server\n";
-    client->ReceiveMessage(sendMessage);
+    std::string message = "Send_File";
+    sendMessage(client, message);
+    client->SendFile();
 }
 
 static void disconnect(Client *client)
@@ -38,7 +38,6 @@ static void disconnect(Client *client)
     std::cout << "Disconnecting client from server...\n";
     std::string message = "Disconnect";
     sendMessage(client, message);
-    awaitMessage(client, message);
     client->Disconnect();
 }
 
@@ -48,7 +47,8 @@ static void showMenu(void)
     std::cout << "1: Connect to server\n";
     std::cout << "2: Disconnect from server\n";
     std::cout << "3: Send message\n";
-    std::cout << "4: Exit application\n";
+    std::cout << "4: Send file\n";
+    std::cout << "5: Exit application\n";
 }
 
 int main(void)
@@ -73,10 +73,15 @@ int main(void)
             disconnect(client);
             break;
         case '3':
+            std::cout << "Input message to send to server: ";
+            std::cin >> messageToServer;
+            std::cin.ignore();
             sendMessage(client, messageToServer);
-            awaitMessage(client, messageToServer);
             break;
         case '4':
+            sendFile(client);
+            break;
+        case '5':
             quit = true;
             break;
         default:

@@ -103,7 +103,7 @@ int Server::ReadMessage(int descriptor)
         return -1;
     else
     {
-        std::cout << "Server received message: " << messageBuffer << "\n";
+        std::cout << "Server received message: " << messageBuffer << " from client with address: " << inet_ntoa(ClientSocketAddrIn.sin_addr) << "\n";
         std::cout << "Sending acknowlegdement back to client\n";
         char const *Answer = "ACK";
         SendMessage(descriptor, Answer);
