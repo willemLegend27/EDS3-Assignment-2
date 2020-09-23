@@ -16,6 +16,9 @@
 #include <iostream>
 #include <stdexcept>
 #include <stdint.h>
+#include <fstream>
+#include <dirent.h>
+#include <vector>
 
 class Client
 {
@@ -26,7 +29,7 @@ private:
     uint16_t serverPort;
     struct sockaddr_in ServerAddress;
     const char *ClientAddress = "127.0.0.1";
-    const char *PathToSendFile = "/home/student/Desktop/Documents/Embedded Driven Systems/Assignment 2/Filedropper_send/SendFile1.txt";
+    const char *PathToClientFolder = "/home/student/Desktop/Documents/Embedded Driven Systems/Assignment 2/Filedropper_Client/";
 
 public:
     Client(uint16_t serverPort);
@@ -34,13 +37,15 @@ public:
     int CreateClientSocket();
     int ConnectToServer();
     void Messaging(std::string message);
-    void SendFile();
+    void SendFile(std::string fileName, std::string message);
+    void RequestFile(std::string key);
     char *GetClientAddress();
     void Disconnect();
 
 private:
     void SendMessage(std::string message);
     void ReceiveMessage();
+    int SearchingForFile(std::string name);
 };
 
 #endif

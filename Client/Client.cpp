@@ -54,8 +54,7 @@ void Client::Messaging(std::string message)
 void Client::ReceiveMessage()
 {
     const int BufferSize = 1050;
-    char messageBuffer[BufferSize];
-    messageBuffer[BufferSize] = '\0';
+    char messageBuffer[BufferSize] = {0};
     valRead = read(clientSocket, messageBuffer, 1024);
     std::cout << "Received message: " << messageBuffer << "\n";
     if (strcmp(messageBuffer, "ACK") == 0)
@@ -64,26 +63,70 @@ void Client::ReceiveMessage()
     }
 }
 
-void Client::SendFile()
+void Client::SendFile(std::string fileName, std::string message)
 {
-    const int BufferSize = 1050;
-    char messageBuffer[BufferSize];
-    messageBuffer[BufferSize] = '\0';
-    std::cout << "Sending file to server\n";
-    FILE *descriptor = fopen(PathToSendFile, "rw");
-    int readBytes;
-    while (!feof(descriptor))
+
+    if (SearchingForFile(fileName) == -1)
     {
-        if ((readBytes = fread(&messageBuffer, 1, sizeof(messageBuffer), descriptor)) > 0)
-            send(clientSocket, messageBuffer, readBytes, 0);
-        else
+        std::cout << "Error sending file\n";
+    }
+    else
+    {
+        SendMessage(message);
+        const int BufferSize = 1050;
+        char messageBuffer[BufferSize] = {0};
+        messageBuffer[BufferSize] = '\0';
+        std::cout << "Sending file to server\n";
+        FILE *descriptor = fopen(PathToClientFolder, "rw");
+        int readBytes;
+        while (!feof(descriptor))
         {
-            break;
+            if ((readBytes = fread(&messageBuffer, 1, sizeof(messageBuffer), descriptor)) > 0)
+                send(clientSocket, messageBuffer, readBytes, 0);
+            else
+            {
+                break;
+            }
+        }
+        std::cout << "File has been sended to server\n";
+        fclose(descriptor);
+    }
+}
+
+int Client::SearchingForFile(std::string name)
+{
+    std::string dir = PathToClientFolder;
+    std::vector<std::string> files = std::vector<std::string>();
+    DIR *dp;
+    struct dirent *dirp;
+
+    if ((dp = opendir(dir.c_str())) == NULL)
+    {
+        std::cout << "Error opening directory\n";
+    }
+    while ((dirp = readdir(dp)) != NULL)
+    {
+        files.push_back(std::string(dirp->d_name));
+    }
+    closedir(dp);
+    for (unsigned int i = 0; i < files.size(); i++)
+    {
+
+        std::cout << files[i] << "\n";
+        std::cout << name;
+        if (files[i] == name)
+        {
+            std::cout << "Found file: " << files[i].c_str() << "\n";
+            return 0;
         }
     }
-    std::cout << "File has been sended to server\n";
-    ReceiveMessage();
-    fclose(descriptor);
+    std::cout << "File doesn't exist\n";
+    return -1;
+}
+
+void Client::RequestFile(std::string key)
+{
+    Messaging(key);
 }
 
 char *Client::GetClientAddress()

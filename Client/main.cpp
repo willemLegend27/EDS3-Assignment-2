@@ -26,11 +26,19 @@ static void sendMessage(Client *client, std::string message)
     client->Messaging(message);
 }
 
-static void sendFile(Client *client)
+static void sendFile(Client *client, std::string fileName)
 {
     std::string message = "Send_File";
+
+    client->SendFile(fileName, message);
+}
+
+static void requestFile(Client *client, std::string key)
+{
+
+    std::string message = "Request_File";
     sendMessage(client, message);
-    client->SendFile();
+    client->RequestFile(key);
 }
 
 static void disconnect(Client *client)
@@ -48,7 +56,9 @@ static void showMenu(void)
     std::cout << "2: Disconnect from server\n";
     std::cout << "3: Send message\n";
     std::cout << "4: Send file\n";
-    std::cout << "5: Exit application\n";
+    std::cout << "5: Request file\n";
+    std::cout << "6: Delete file from server\n";
+    std::cout << "7: Exit application\n";
 }
 
 int main(void)
@@ -79,9 +89,21 @@ int main(void)
             sendMessage(client, messageToServer);
             break;
         case '4':
-            sendFile(client);
+            std::cout << "Input name of file to send to server: ";
+            std::cin >> messageToServer;
+            std::cin.ignore();
+            sendFile(client, messageToServer);
             break;
         case '5':
+            std::cout << "Input key of desired file to request: ";
+            std::cin >> messageToServer;
+            std::cin.ignore();
+            requestFile(client, messageToServer);
+            break;
+        case '6':
+            //delete
+            break;
+        case '7':
             quit = true;
             break;
         default:

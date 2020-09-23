@@ -93,8 +93,9 @@ void Server::ListenForMessages(int descriptor)
 int Server::ReadMessage(int descriptor)
 {
     const int BufferSize = 1050;
-    char messageBuffer[BufferSize];
+    char messageBuffer[BufferSize] = {0};
     int nrOfBytes = read(descriptor, messageBuffer, BufferSize);
+
     if (nrOfBytes < 0)
     {
         perror("read");
@@ -106,38 +107,89 @@ int Server::ReadMessage(int descriptor)
     {
         std::cout << "Server received message of " << nrOfBytes << " bytes from client with address: " << inet_ntoa(ClientSocketAddrIn.sin_addr) << "\n";
         std::cout << "Received message: " << messageBuffer << "\n";
-        std::cout << "Sending acknowlegdement back to client\n";
-        char const *Answer = "ACK";
-        SendMessage(descriptor, Answer);
-        if (receivingFile == true)
-        {
-            receivingFile = false;
-            std::string fileName = GenerateKey();
-            ReceiveFile(messageBuffer, fileName);
-            std::cout << "Sending key to client";
-            SendMessage(descriptor, ("Key for file: " + fileName).c_str());
-        }
         if (strcmp(messageBuffer, "Disconnect") == 0)
         {
             CloseClientSocket(descriptor);
         }
         else if (strcmp(messageBuffer, "Send_File") == 0)
         {
-            receivingFile = true;
+
+            std::string fileKey = std::to_string(GenerateKey());
+            ReceiveFile(messageBuffer, fileKey);
+            std::cout << "Sending key to client\n";
+            SendMessage(descriptor, ("Key for file: " + fileKey).c_str());
         }
+        else if (strcmp(messageBuffer, "Request_File") == 0)
+        {
+            if (SearchingForFile(messageBuffer) == 0)
+            {
+                SendFile(descriptor, messageBuffer);
+            }
+        }
+        std::cout << "Sending acknowlegdement back to client\n";
+        const char *answer = "ACK";
+
+        SendMessage(descriptor, answer);
+
         return 0;
     }
 }
 
-std::string Server::GenerateKey()
+void Server::SendFile(int descriptor, std::string fileName)
 {
-    std::string key = "";
-    srand(time(NULL));
-    for (int i = 0; i < 4; i++)
+    const int BufferSize = 1050;
+    char messageBuffer[BufferSize] = {0};
+    messageBuffer[BufferSize] = '\0';
+    std::cout << "Sending file to client\n";
+    FILE *pathDescriptor = fopen((PathToReceiveFolder + fileName).c_str(), "rw");
+    int readBytes;
+    while (!feof(pathDescriptor))
     {
-        key += std::to_string(rand() % 1000);
+        if ((readBytes = fread(&messageBuffer, 1, sizeof(messageBuffer), pathDescriptor)) > 0)
+            send(descriptor, messageBuffer, readBytes, 0);
+        else
+        {
+            break;
+        }
     }
-    return key;
+    std::cout << "File has been sended to client\n";
+    fclose(pathDescriptor);
+}
+
+int Server::SearchingForFile(std::string name)
+{
+    std::string dir = PathToReceiveFolder;
+    std::vector<std::string> files = std::vector<std::string>();
+    DIR *dp;
+    struct dirent *dirp;
+
+    if ((dp = opendir(dir.c_str())) == NULL)
+    {
+        std::cout << "Error opening directory\n";
+    }
+    while ((dirp = readdir(dp)) != NULL)
+    {
+        files.push_back(std::string(dirp->d_name));
+    }
+    closedir(dp);
+    for (unsigned int i = 0; i < files.size(); i++)
+    {
+
+        std::cout << files[i] << "\n";
+        std::cout << name;
+        if (files[i] == name)
+        {
+            std::cout << "Found file: " << files[i].c_str() << "\n";
+            return 0;
+        }
+    }
+    std::cout << "File doesn't exist\n";
+    return -1;
+}
+
+int Server::GenerateKey()
+{
+    return rand() % 10000;
 }
 
 void Server::ReceiveFile(const char *content, std::string fileName)
