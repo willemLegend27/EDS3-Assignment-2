@@ -30,8 +30,8 @@ private:
     const char *PathToSendFile = "/home/student/Desktop/Documents/Embedded Driven Systems/Assignment 2/Filedropper_send/SendFile1.txt";
 
 public:
-    ~Client();
     Client(uint16_t serverPort);
+    ~Client();
     int CreateClientSocket();
     int ConnectToServer();
     void Messaging(std::string message);

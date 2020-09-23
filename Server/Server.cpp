@@ -45,7 +45,6 @@ void Server::CreateServer()
     std::cout << "Awaiting client(s) to connect\n";
     while (true)
     {
-
         readFDSet = activeFDSet;
         if (select(FD_SETSIZE, &readFDSet, NULL, NULL, NULL) < 0)
         {
@@ -63,6 +62,7 @@ void Server::CreateServer()
                 }
                 else
                 {
+
                     ListenForMessages(i);
                 }
             }
@@ -103,16 +103,35 @@ int Server::ReadMessage(int descriptor)
         return -1;
     else
     {
-        std::cout << "Server received message: " << messageBuffer << " from client with address: " << inet_ntoa(ClientSocketAddrIn.sin_addr) << "\n";
+        std::cout << "Server received message of " << nrOfBytes << " bytes from client with address: " << inet_ntoa(ClientSocketAddrIn.sin_addr) << "\n";
+        std::cout << "Received message: " << messageBuffer << "\n";
         std::cout << "Sending acknowlegdement back to client\n";
         char const *Answer = "ACK";
         SendMessage(descriptor, Answer);
+        if (receivingFile == true)
+        {
+            receivingFile = false;
+            ReceiveFile(messageBuffer);
+        }
         if (strcmp(messageBuffer, "Disconnect") == 0)
         {
             CloseClientSocket(descriptor);
         }
+        else if (strcmp(messageBuffer, "Send_File") == 0)
+        {
+            receivingFile = true;
+        }
         return 0;
     }
+}
+
+void Server::ReceiveFile(const char *content)
+{
+    std::cout << "Creating file: " << PathToReceiveFile << "\n";
+    std::ofstream createdFile(PathToReceiveFile);
+    createdFile << content;
+    std::cout << "Parsed received content to file"
+              << "\n";
 }
 
 void Server::SendMessage(int desciptor, const char *message)

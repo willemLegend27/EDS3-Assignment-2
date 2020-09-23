@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <fstream>
 
 class Server
 {
@@ -25,6 +26,8 @@ private:
     fd_set activeFDSet, readFDSet;
     socklen_t clientSize;
     int maxMessageSize = 1000;
+    bool receivingFile = false;
+    const char *PathToReceiveFile = "/home/student/Desktop/Documents/Embedded Driven Systems/Assignment 2/Filedropper_receive/GeneratedFile.txt";
 
 public:
     Server(uint16_t portNumber);
@@ -40,6 +43,7 @@ private:
     int ReadMessage(int descriptor);
     void SendMessage(int descriptor, const char *message);
     void CloseClientSocket(int descriptor);
+    void ReceiveFile(const char *content);
 };
 
 #endif
