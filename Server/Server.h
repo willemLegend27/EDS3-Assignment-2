@@ -25,9 +25,8 @@ private:
     struct sockaddr_in ClientSocketAddrIn;
     fd_set activeFDSet, readFDSet;
     socklen_t clientSize;
-    int maxMessageSize = 1000;
     bool receivingFile = false;
-    const char *PathToReceiveFile = "/home/student/Desktop/Documents/Embedded Driven Systems/Assignment 2/Filedropper_receive/GeneratedFile.txt";
+    const char *PathToReceiveFolder = "/home/student/Desktop/Documents/Embedded Driven Systems/Assignment 2/Filedropper_receive/";
 
 public:
     Server(uint16_t portNumber);
@@ -43,7 +42,8 @@ private:
     int ReadMessage(int descriptor);
     void SendMessage(int descriptor, const char *message);
     void CloseClientSocket(int descriptor);
-    void ReceiveFile(const char *content);
+    void ReceiveFile(const char *content, std::string fileName);
+    std::string GenerateKey();
 };
 
 #endif

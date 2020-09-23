@@ -25,7 +25,6 @@ private:
     int valRead;
     uint16_t serverPort;
     struct sockaddr_in ServerAddress;
-    char messageBuffer[1050] = {0};
     const char *ClientAddress = "127.0.0.1";
     const char *PathToSendFile = "/home/student/Desktop/Documents/Embedded Driven Systems/Assignment 2/Filedropper_send/SendFile1.txt";
 
@@ -41,7 +40,7 @@ public:
 
 private:
     void SendMessage(std::string message);
-    void ReceiveMessage(std::string messageBackUp);
+    void ReceiveMessage();
 };
 
 #endif

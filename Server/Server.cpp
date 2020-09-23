@@ -92,8 +92,9 @@ void Server::ListenForMessages(int descriptor)
 }
 int Server::ReadMessage(int descriptor)
 {
-    char *messageBuffer = new char[maxMessageSize];
-    int nrOfBytes = read(descriptor, messageBuffer, maxMessageSize);
+    const int BufferSize = 1050;
+    char messageBuffer[BufferSize];
+    int nrOfBytes = read(descriptor, messageBuffer, BufferSize);
     if (nrOfBytes < 0)
     {
         perror("read");
@@ -111,7 +112,10 @@ int Server::ReadMessage(int descriptor)
         if (receivingFile == true)
         {
             receivingFile = false;
-            ReceiveFile(messageBuffer);
+            std::string fileName = GenerateKey();
+            ReceiveFile(messageBuffer, fileName);
+            std::cout << "Sending key to client";
+            SendMessage(descriptor, ("Key for file: " + fileName).c_str());
         }
         if (strcmp(messageBuffer, "Disconnect") == 0)
         {
@@ -125,10 +129,22 @@ int Server::ReadMessage(int descriptor)
     }
 }
 
-void Server::ReceiveFile(const char *content)
+std::string Server::GenerateKey()
 {
-    std::cout << "Creating file: " << PathToReceiveFile << "\n";
-    std::ofstream createdFile(PathToReceiveFile);
+    std::string key = "";
+    srand(time(NULL));
+    for (int i = 0; i < 4; i++)
+    {
+        key += std::to_string(rand() % 1000);
+    }
+    return key;
+}
+
+void Server::ReceiveFile(const char *content, std::string fileName)
+{
+
+    std::cout << "Creating file: " << PathToReceiveFolder << "\n";
+    std::ofstream createdFile(PathToReceiveFolder + fileName);
     createdFile << content;
     std::cout << "Parsed received content to file"
               << "\n";

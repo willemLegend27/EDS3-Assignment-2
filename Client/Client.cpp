@@ -48,26 +48,27 @@ void Client::Messaging(std::string message)
     std::cout << "Sending a message to the server\n";
     SendMessage(message);
     std::cout << "Waiting for response from server\n";
-    ReceiveMessage(message);
+    ReceiveMessage();
 }
 
-void Client::ReceiveMessage(std::string messageBackUp)
+void Client::ReceiveMessage()
 {
+    const int BufferSize = 1050;
+    char messageBuffer[BufferSize];
+    messageBuffer[BufferSize] = '\0';
     valRead = read(clientSocket, messageBuffer, 1024);
     std::cout << "Received message: " << messageBuffer << "\n";
     if (strcmp(messageBuffer, "ACK") == 0)
     {
         std::cout << "Received acknowledgement, resuming program...\n";
     }
-    else
-    {
-        std::cout << "No acknowledgement received, trying to resend te message...\n";
-        Messaging(messageBackUp);
-    }
 }
 
 void Client::SendFile()
 {
+    const int BufferSize = 1050;
+    char messageBuffer[BufferSize];
+    messageBuffer[BufferSize] = '\0';
     std::cout << "Sending file to server\n";
     FILE *descriptor = fopen(PathToSendFile, "rw");
     int readBytes;
@@ -81,6 +82,7 @@ void Client::SendFile()
         }
     }
     std::cout << "File has been sended to server\n";
+    ReceiveMessage();
     fclose(descriptor);
 }
 
